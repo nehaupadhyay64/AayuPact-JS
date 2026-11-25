@@ -1,0 +1,48 @@
+{
+  "meds": [
+    {
+      "id": 1,
+      "name": "Telma 40 (BP)",
+      "dosage": "1 Tablet",
+      "time": "08:00 AM",
+      "instruction": "After Breakfast",
+      "status": "pending"
+    },
+    {
+      "id": 2,
+      "name": "Glycomet GP 1",
+      "dosage": "1 Tablet",
+      "time": "01:30 PM",
+      "instruction": "Before Lunch",
+      "status": "pending"
+    },
+    {
+      "id": 3,
+      "name": "Ecosprin 75mg",
+      "dosage": "1 Tablet",
+      "time": "09:00 PM",
+      "instruction": "After Dinner",
+      "status": "pending"
+    },
+    {
+      "id": 1795586891382,
+      "name": "Paracetamol",
+      "dosage": "1 Tablet",
+      "time": "06:00 PM",
+      "instruction": "After Meal",
+      "status": "pending"
+    }
+  ],
+  "consent": {
+    "medLogs": true,
+    "missedAlerts": false,
+    "appointments": false
+  },
+  "alerts": [
+    {
+      "id": 101,
+      "type": "taken",
+      "text": "08:05 AM — Ramesh ji took Telma 40 (Verified)"
+    }
+  ]
+}
