@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import './aayupact.css';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from './Header';
 import SeniorView from './SeniorView';
 import CaregiverView from './CaregiverView';
+import AuthPage from './AuthPage';
+import './aayupact.css';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -10,18 +11,25 @@ const SENIORS = [
   { id: 'ramesh', name: 'Ramesh', age: 72 },
   { id: 'sunita', name: 'Sunita', age: 68 },
   { id: 'harish', name: 'Harish', age: 75 },
-  { id: 'kavita', name: 'Kavita', age: 70 },
 ];
 
 const CAREGIVERS = [
   { id: 'priya', name: 'Priya' },
   { id: 'rohan', name: 'Rohan' },
   { id: 'ananya', name: 'Ananya' },
-  { id: 'vikram', name: 'Vikram' },
 ];
 
 export default function App() {
-  const [role, setRole] = useState('senior');
+  const [token, setToken] = useState(() => localStorage.getItem('aayupact_token') || '');
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('aayupact_user') || 'null');
+    } catch {
+      return null;
+    }
+  });
+
+  const [role, setRole] = useState(() => currentUser?.role || 'senior');
   const [selectedSeniorId, setSelectedSeniorId] = useState(SENIORS[0].id);
   const [selectedCaregiverId, setSelectedCaregiverId] = useState(CAREGIVERS[0].id);
 
@@ -31,12 +39,39 @@ export default function App() {
   const [sosActive, setSosActive] = useState(false);
   const [backendError, setBackendError] = useState('');
 
-  const currentSenior = SENIORS.find((s) => s.id === selectedSeniorId) || SENIORS[0];
-  const currentCaregiver = CAREGIVERS.find((c) => c.id === selectedCaregiverId) || CAREGIVERS[0];
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('aayupact_token');
+    localStorage.removeItem('aayupact_user');
+    setToken('');
+    setCurrentUser(null);
+  }, []);
+
+  const handleAuthSuccess = (newToken, user) => {
+    localStorage.setItem('aayupact_token', newToken);
+    localStorage.setItem('aayupact_user', JSON.stringify(user));
+    setToken(newToken);
+    setCurrentUser(user);
+    if (user?.role === 'caregiver' || user?.role === 'senior') {
+      setRole(user.role);
+    }
+  };
+
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
 
   useEffect(() => {
-    fetch(`${API_URL}/data`)
+    if (!token) return;
+
+    fetch(`${API_URL}/data`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((res) => {
+        if (res.status === 401) {
+          handleLogout();
+          throw new Error('Session expired');
+        }
         if (!res.ok) throw new Error('Failed to load backend data');
         return res.json();
       })
@@ -46,10 +81,19 @@ export default function App() {
         setAlerts(data.alerts || []);
         setBackendError('');
       })
-      .catch(() => {
-        setBackendError('Backend (http://localhost:5000) band hai. Dusre terminal mein "npm start" ya "node server.js" chalao.');
+      .catch((err) => {
+        if (err.message !== 'Session expired') {
+          setBackendError('Backend (http://localhost:5000) band hai. Dusre terminal mein "npm start" chalao.');
+        }
       });
-  }, []);
+  }, [token, handleLogout]);
+
+  if (!token) {
+    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  const currentSenior = SENIORS.find((s) => s.id === selectedSeniorId) || SENIORS[0];
+  const currentCaregiver = CAREGIVERS.find((c) => c.id === selectedCaregiverId) || CAREGIVERS[0];
 
   const speak = (text) => {
     if ('speechSynthesis' in window) {
@@ -61,7 +105,7 @@ export default function App() {
   const handleUpdateStatus = async (id, status) => {
     const res = await fetch(`${API_URL}/meds/${id}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({ status }),
     });
     if (res.ok) {
@@ -74,7 +118,7 @@ export default function App() {
   const handleAddMed = async ({ name, time }) => {
     const res = await fetch(`${API_URL}/meds`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({ name, time }),
     });
     if (res.ok) {
@@ -84,7 +128,10 @@ export default function App() {
   };
 
   const handleDeleteMed = async (id) => {
-    const res = await fetch(`${API_URL}/meds/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_URL}/meds/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (res.ok) {
       const updated = await res.json();
       setMeds(updated);
@@ -96,13 +143,16 @@ export default function App() {
     setConsent(updatedConsent);
     await fetch(`${API_URL}/consent`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify(updatedConsent),
     });
   };
 
   const handleResetDay = async () => {
-    const res = await fetch(`${API_URL}/meds/reset`, { method: 'POST' });
+    const res = await fetch(`${API_URL}/meds/reset`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (res.ok) {
       const updated = await res.json();
       setMeds(updated);
@@ -118,7 +168,38 @@ export default function App() {
   const adherence = meds.length ? Math.round((takenCount / meds.length) * 100) : 0;
 
   return (
-    <div className="aayu-shell text-slate-900 font-sans">
+    <div className="app-shell">
+      <div
+        style={{
+          backgroundColor: '#042f2e',
+          color: '#ccfbf1',
+          fontSize: '12px',
+          padding: '6px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <span>
+          Signed in as <strong>{currentUser?.name || currentUser?.email}</strong> ({currentUser?.role || role})
+        </span>
+        <button
+          type="button"
+          onClick={handleLogout}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: '#99f6e4',
+            textDecoration: 'underline',
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontSize: '12px',
+          }}
+        >
+          Logout
+        </button>
+      </div>
+
       <Header
         role={role}
         setRole={setRole}
@@ -130,22 +211,40 @@ export default function App() {
         setSelectedCaregiverId={setSelectedCaregiverId}
       />
 
-      <main className="max-w-5xl mx-auto p-6 space-y-6">
+      <main className="main-container">
         {backendError && (
-          <div className="bg-amber-100 border border-amber-300 text-amber-900 px-4 py-3 rounded-xl text-sm font-medium">
+          <div className="notice-banner" style={{ marginBottom: '16px' }}>
             {backendError}
           </div>
         )}
 
         {sosActive && (
-          <div className="bg-red-600 text-white p-4 rounded-2xl flex items-center justify-between animate-pulse">
-            <span className="font-bold text-lg">
-              🚨 EMERGENCY SOS SENT TO {currentCaregiver.name.toUpperCase()} & DR. MEHTA!
-            </span>
+          <div
+            style={{
+              backgroundColor: '#dc2626',
+              color: '#ffffff',
+              padding: '14px 18px',
+              borderRadius: '14px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontWeight: 700,
+            }}
+          >
+            <span>🚨 EMERGENCY SOS SENT TO {currentCaregiver.name.toUpperCase()} &amp; DR. MEHTA!</span>
             <button
               type="button"
               onClick={() => setSosActive(false)}
-              className="bg-white text-red-700 px-3 py-1 rounded-lg font-bold text-sm"
+              style={{
+                backgroundColor: '#ffffff',
+                color: '#b91c1c',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
             >
               Cancel
             </button>

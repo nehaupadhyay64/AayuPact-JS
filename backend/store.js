@@ -1,8 +1,13 @@
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const FILE_PATH = './db.json';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const FILE_PATH = path.join(__dirname, 'db.json');
 
 const defaultData = {
+  users: [],
   meds: [
     { id: 1, name: 'Telma 40 (BP)', dosage: '1 Tablet', time: '08:00 AM', instruction: 'After Breakfast', status: 'taken' },
     { id: 2, name: 'Glycomet GP 1', dosage: '1 Tablet', time: '01:30 PM', instruction: 'Before Lunch', status: 'pending' },
@@ -21,10 +26,19 @@ const defaultData = {
 export function getData() {
   if (!fs.existsSync(FILE_PATH)) {
     saveData(defaultData);
-    return defaultData;
+    return structuredClone(defaultData);
   }
   const text = fs.readFileSync(FILE_PATH, 'utf-8');
-  return JSON.parse(text);
+  const parsed = JSON.parse(text || '{}');
+
+  return {
+    ...defaultData,
+    ...parsed,
+    users: Array.isArray(parsed.users) ? parsed.users : [],
+    meds: Array.isArray(parsed.meds) ? parsed.meds : defaultData.meds,
+    consent: { ...defaultData.consent, ...(parsed.consent || {}) },
+    alerts: Array.isArray(parsed.alerts) ? parsed.alerts : defaultData.alerts
+  };
 }
 
 export function saveData(data) {

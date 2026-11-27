@@ -1,12 +1,62 @@
 import React from 'react';
-import { ShieldCheck, Volume2, Check, X, PhoneCall, RotateCcw } from 'lucide-react';
+import {
+  Volume2,
+  Check,
+  X,
+  RotateCcw,
+  PhoneCall,
+  CalendarClock,
+} from 'lucide-react';
+
+function HeartCareBadge() {
+  return (
+    <svg
+      width="56"
+      height="56"
+      viewBox="0 0 56 56"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="ap-hero-emblem"
+      aria-hidden="true"
+    >
+      <path
+        d="M12 37C12 34.5 14.5 33 17.5 33H29C31.5 33 33.5 34.5 33.5 36.8C33.5 39 31.5 40.5 29 40.5H23"
+        stroke="#0f172a"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 37L17.5 43.5H31.5L39.5 37.5C41.2 36.2 43.5 36.8 44.2 38.7C44.8 40.3 44 42.1 42.4 43L32.5 48.5H16.5L10 42"
+        stroke="#0f172a"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M28 28.5C28 28.5 18 22.3 18 15.6C18 12.4 20.5 10 23.5 10C25.5 10 27.1 11.1 28 12.7C28.9 11.1 30.5 10 32.5 10C35.5 10 38 12.4 38 15.6C38 22.3 28 28.5 28 28.5Z"
+        fill="#fda4af"
+        stroke="#0f172a"
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      <circle cx="42" cy="15" r="6.5" fill="#d1fae5" stroke="#0f172a" strokeWidth="2" />
+      <path
+        d="M39.5 15.2L41.2 17L44.8 13.2"
+        stroke="#059669"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export default function SeniorView({
-  senior = { name: 'Ramesh', age: 72 },
-  caregiver = { name: 'Priya' },
-  meds,
-  adherence,
-  consent,
+  senior,
+  caregiver,
+  meds = [],
+  adherence = 85,
+  consent = { medLogs: false, missedAlerts: true, appointments: true },
   onToggleConsent,
   onUpdateStatus,
   onResetDay,
@@ -14,111 +64,161 @@ export default function SeniorView({
   onSpeak,
 }) {
   return (
-    <div className="space-y-6">
-      <div className="aayu-card p-6 rounded-2xl flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Namaste, {senior.name} Ji 🙏</h2>
-          <p className="text-slate-600">
-            Today's Medication Adherence: <span className="font-bold text-teal-700">{adherence}%</span>
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={onResetDay}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold px-4 py-3.5 rounded-2xl flex items-center gap-2 text-sm transition"
-          >
-            <RotateCcw className="w-4 h-4" /> Reset Day
-          </button>
-          <button
-            type="button"
-            onClick={() => onTriggerSos(caregiver.name)}
-            className="aayu-sos-btn hover:opacity-95 text-white font-bold px-6 py-3.5 rounded-2xl flex items-center gap-2 text-lg transition"
-          >
-            <PhoneCall className="w-6 h-6" /> Emergency SOS
-          </button>
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-4">
-        {meds.map((med) => (
-          <div key={med.id} className="aayu-card p-6 rounded-2xl flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="aayu-pill-badge text-sm font-bold px-3 py-1 rounded-full">{med.time}</span>
-                <button
-                  type="button"
-                  onClick={() => onSpeak(`Time for ${med.name}, ${med.dosage}, ${med.instruction}`)}
-                  className="p-2 bg-slate-100 hover:bg-teal-100 rounded-full text-teal-700 transition"
-                  title="Listen reminder"
-                >
-                  <Volume2 className="w-5 h-5" />
-                </button>
-              </div>
-              <h3 className="text-xl font-extrabold text-slate-900 mt-2">{med.name}</h3>
-              <p className="text-slate-600 font-medium">{med.dosage} • {med.instruction}</p>
-            </div>
-
-            <div className="mt-6">
-              {med.status === 'pending' ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onUpdateStatus(med.id, 'taken')}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-1 transition"
-                  >
-                    <Check className="w-5 h-5" /> Taken
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onUpdateStatus(med.id, 'skipped')}
-                    className="bg-slate-200 hover:bg-red-100 hover:text-red-700 text-slate-700 font-bold py-3 rounded-xl flex items-center justify-center gap-1 transition"
-                  >
-                    <X className="w-5 h-5" /> Skip
-                  </button>
-                </div>
-              ) : (
+    <div className="ap-senior-wrap">
+      {/* Top Greeting & Adherence Wave Banner */}
+      <section className="ap-banner-card">
+        <div className="ap-banner-left">
+          <HeartCareBadge />
+          <div className="ap-banner-info">
+            <h2 className="ap-greeting">Namaste, {senior?.name || 'Ramesh'} Ji 🙏</h2>
+            <p className="ap-adherence-label">
+              Today&apos;s Medication Adherence: <strong>{adherence}%</strong>
+            </p>
+            <div className="ap-progress-row">
+              <div className="ap-progress-track">
                 <div
-                  className={`text-center py-2.5 rounded-xl font-bold uppercase text-sm ${
-                    med.status === 'taken' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {med.status === 'taken' ? '✓ Dose Taken' : '✕ Skipped'}
-                </div>
-              )}
+                  className="ap-progress-bar"
+                  style={{ width: `${Math.min(100, Math.max(0, adherence))}%` }}
+                />
+              </div>
+              <span className="ap-progress-pct">{adherence}%</span>
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="aayu-card p-6 rounded-2xl">
-        <div className="flex items-center gap-2 mb-4">
-          <ShieldCheck className="w-6 h-6 text-teal-700" />
-          <h3 className="text-lg font-bold">My Privacy & Caregiver Consent (AayuPact Vault)</h3>
         </div>
-        <div className="grid md:grid-cols-3 gap-4">
-          {[
-            { key: 'medLogs', label: 'Share Taken Pill Logs' },
-            { key: 'missedAlerts', label: 'Send Missed-Dose Alerts' },
-            { key: 'appointments', label: 'Share Doctor Notes' },
-          ].map((item) => (
-            <label
-              key={item.key}
-              className="flex items-center justify-between p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-teal-50/40 transition"
+
+        <div className="ap-banner-actions">
+          <button type="button" onClick={onResetDay} className="ap-btn-reset">
+            <RotateCcw size={16} />
+            <span>Reset Day</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onTriggerSos && onTriggerSos(caregiver?.name)}
+            className="ap-btn-sos"
+          >
+            <PhoneCall size={16} />
+            <span>Emergency SOS</span>
+          </button>
+        </div>
+      </section>
+
+      {/* Medicine Grid + Next Appointment Card */}
+      <section className="ap-cards-grid">
+        {meds.map((med) => {
+          const isTaken = med.status === 'taken';
+          const isSkipped = med.status === 'skipped';
+
+          return (
+            <article
+              key={med.id}
+              className={`ap-med-card ${isTaken ? 'is-taken' : ''} ${
+                isSkipped ? 'is-skipped' : ''
+              }`}
             >
-              <span className="font-semibold text-sm">{item.label}</span>
+              <div className="ap-med-top">
+                <span className="ap-time-badge">{med.time}</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSpeak &&
+                    onSpeak(
+                      `${med.name}, ${med.dosage || '1 Tablet'}, at ${med.time}, ${
+                        med.instruction || ''
+                      }`
+                    )
+                  }
+                  className="ap-speak-btn"
+                  title="Listen reminder"
+                  aria-label={`Listen reminder for ${med.name}`}
+                >
+                  <Volume2 size={17} />
+                </button>
+              </div>
+
+              <div className="ap-med-content">
+                <h3 className="ap-med-title">{med.name}</h3>
+                <p className="ap-med-sub">
+                  {med.dosage || '1 Tablet'}
+                  {med.instruction ? ` • ${med.instruction}` : ''}
+                </p>
+              </div>
+
+              <div className="ap-med-actions">
+                <button
+                  type="button"
+                  onClick={() => onUpdateStatus && onUpdateStatus(med.id, 'taken')}
+                  className={`ap-btn-taken ${isTaken ? 'selected' : ''}`}
+                >
+                  <Check size={16} />
+                  <span>Taken</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onUpdateStatus && onUpdateStatus(med.id, 'skipped')}
+                  className={`ap-btn-skip ${isSkipped ? 'selected' : ''}`}
+                >
+                  <X size={16} />
+                  <span>Skip</span>
+                </button>
+              </div>
+            </article>
+          );
+        })}
+
+        {/* Next Appointment Card */}
+        <article className="ap-appointment-card">
+          <div className="ap-appt-icon-box">
+            <CalendarClock size={34} strokeWidth={1.8} />
+          </div>
+          <p className="ap-appt-title">Next Appointment: Dr. Mehta,</p>
+          <p className="ap-appt-sub">Dec 10, 10:00 AM</p>
+        </article>
+      </section>
+
+      {/* Consent Vault */}
+      <section className="ap-vault-card">
+        <h3 className="ap-vault-heading">Consent Vault</h3>
+
+        <div className="ap-vault-row">
+          <label className="ap-toggle-item">
+            <span>Share Taken Pill Logs</span>
+            <span className="ap-switch">
               <input
                 type="checkbox"
-                checked={Boolean(consent[item.key])}
-                onChange={() => onToggleConsent(item.key)}
-                className="w-5 h-5 accent-teal-700"
+                checked={Boolean(consent.medLogs)}
+                onChange={() => onToggleConsent && onToggleConsent('medLogs')}
               />
-            </label>
-          ))}
+              <span className="ap-slider" />
+            </span>
+          </label>
+
+          <label className="ap-toggle-item">
+            <span>Send Missed-Dose Alerts</span>
+            <span className="ap-switch">
+              <input
+                type="checkbox"
+                checked={Boolean(consent.missedAlerts)}
+                onChange={() => onToggleConsent && onToggleConsent('missedAlerts')}
+              />
+              <span className="ap-slider" />
+            </span>
+          </label>
+
+          <label className="ap-toggle-item">
+            <span>Share Doctor Notes</span>
+            <span className="ap-switch">
+              <input
+                type="checkbox"
+                checked={Boolean(consent.appointments)}
+                onChange={() => onToggleConsent && onToggleConsent('appointments')}
+              />
+              <span className="ap-slider" />
+            </span>
+          </label>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
-
-

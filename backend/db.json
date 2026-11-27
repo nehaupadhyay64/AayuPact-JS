@@ -1,4 +1,13 @@
 {
+  "users": [
+    {
+      "id": "574ca9e4-1b79-404b-a6fb-d2ffd4dfe7b8",
+      "name": "Neha",
+      "email": "naira@gmail.com",
+      "passwordHash": "$2b$10$80P2lPGXyUPCXji3Eg0WzukoVQzIn.PHKsmNXnwqHfy.RMxc5uL4.",
+      "role": "caregiver"
+    }
+  ],
   "meds": [
     {
       "id": 1,
