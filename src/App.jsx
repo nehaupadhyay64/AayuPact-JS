@@ -5,7 +5,8 @@ import CaregiverView from './CaregiverView';
 import AuthPage from './AuthPage';
 import './aayupact.css';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL =
+  import.meta.env.VITE_API_URL || 'https://aayupact-js.onrender.com/api';
 
 const SENIORS = [
   { id: 'ramesh', name: 'Ramesh', age: 72 },

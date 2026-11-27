@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import './auth.css';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL =
+  import.meta.env.VITE_API_URL || 'https://aayupact-js.onrender.com/api';
 
 export default function AuthPage({ onAuthSuccess }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
